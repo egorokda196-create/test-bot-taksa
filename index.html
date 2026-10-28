@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#b8e3a3">
+<title>Taksabot</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@600;700;800;900&display=swap');
+:root{--ink:#24352d;--green:#b8e3a3;--border:#293c30}
+*{box-sizing:border-box}
+body{margin:0;background:#d8edca;color:var(--ink);font-family:Nunito,system-ui,sans-serif;image-rendering:pixelated}
+.app-shell{width:min(100%,680px);margin:auto;min-height:100vh;background:#f6f3d7;padding:14px 14px 24px;border-left:3px solid #fff;border-right:3px solid #fff}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 2px 14px}
+.brand{font:14px 'Press Start 2P',monospace;line-height:1.8;color:#315d42}
+.brand span{color:#e18d43}
+.subtitle{font-size:11px;font-weight:900;color:#648066}
+.balance{background:#fff1b3;border:3px solid var(--border);box-shadow:3px 3px 0 var(--border);padding:10px 12px;font-weight:900;white-space:nowrap}
+.scene{height:270px;border:4px solid var(--border);box-shadow:5px 5px 0 #8ebc82;position:relative;overflow:hidden;background:#a8d9f0}
+.sun{position:absolute;right:25px;top:15px;font-size:32px;color:#ffd65a;text-shadow:2px 2px #d99b42}
+.cloud{position:absolute;color:#fff;font-size:19px;letter-spacing:-4px}
+.cloud-a{left:34px;top:35px}
+.cloud-b{right:100px;top:67px}
+.scene-label{position:absolute;top:10px;left:10px;background:#fff8dc;border:2px solid var(--border);padding:5px 7px;font:8px 'Press Start 2P',monospace;z-index:2}
+.yard{position:absolute;inset:105px 0 0;background:#91c978;border-top:4px solid var(--border)}
+.tree{position:absolute;left:18px;top:-63px;font-size:53px;filter:drop-shadow(3px 3px #517a4c)}
+.dog-object{position:absolute;z-index:3;left:36%;top:-31px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:900;color:#2b3829;cursor:pointer;text-shadow:1px 1px #fff}
+.dog-emoji{font-size:57px;filter:drop-shadow(2px 3px #52774b);transform:scaleX(-1)}
+.dog-object span:last-child{background:#fff8dc;border:2px solid var(--border);padding:2px 7px}
+.scene-object{position:absolute;z-index:2;border:3px solid var(--border);box-shadow:3px 3px 0 #4d7045;background:#fff4c9;width:56px;height:51px;font-size:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
+.scene-object small{font:8px Nunito,sans-serif;font-weight:900}
+.bowl{left:10%;top:49px}
+.toy{right:13%;top:54px}
+.house{right:4%;top:-61px;width:64px;height:60px}
+.grass{position:absolute;bottom:15px;width:35px;height:8px;border-top:4px solid #55894c;transform:rotate(-8deg)}
+.grass-1{left:27%}
+.grass-2{right:35%}
+.path{position:absolute;bottom:-17px;left:36%;width:32%;height:53px;background:#d8ba86;border:3px solid #9a8058;border-radius:50%}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:17px 0}
+.stat-card{background:#fffdf0;border:3px solid var(--border);padding:10px;box-shadow:3px 3px 0 #a2b48b}
+.stat-head{display:flex;justify-content:space-between;gap:5px;font-size:12px;font-weight:900;margin-bottom:8px}
+.meter{height:13px;background:#d7d9c8;border:2px solid var(--border);overflow:hidden}
+.meter-fill{height:100%;width:100%;transition:width .3s}
+.hunger-fill{background:#f0a448}
+.joy-fill{background:#f38ca8}
+.level-card{grid-column:1/-1;display:flex;align-items:center;gap:10px}
+.level-card b{font-size:22px;color:#b77a2c}
+.level-card small{margin-left:auto;font-size:11px}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:15px 0}
+.tab{background:#e2edcf;border:2px solid var(--border);padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:18px;box-shadow:2px 2px 0 #9eae8d;cursor:pointer}
+.tab span{font-size:10px;font-weight:900}
+.tab.active{background:#ffd984;transform:translateY(2px);box-shadow:0 0 0}
+.panel{min-height:150px;background:#fffdf0;border:3px solid var(--border);padding:14px;box-shadow:4px 4px 0 #b6c5a3}
+.panel h2{font:12px 'Press Start 2P',monospace;line-height:1.8;margin:0 0 12px}
+.panel p{font-size:13px;line-height:1.5}
+.primary,.action,.small-button{font-family:Nunito,sans-serif;font-weight:900;border:3px solid var(--border);background:#ffd984;padding:10px 12px;box-shadow:3px 3px 0 var(--border);cursor:pointer;color:var(--ink)}
+.primary{width:100%;margin-top:7px}
+.action-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.action{flex:1;min-width:125px;text-align:left;background:#e2edcf}
+.item-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:2px dashed #c5ceb5}
+.item-row:last-child{border-bottom:0}
+.item-title{font-weight:900;font-size:13px}
+.item-sub{font-size:11px;color:#657564;margin-top:3px}
+.item-actions{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.small-button{padding:6px 8px;font-size:11px;box-shadow:2px 2px 0 var(--border);white-space:nowrap}
+.small-button:disabled,.primary:disabled,.action:disabled{opacity:.45;cursor:not-allowed}
+.field{width:100%;padding:10px;border:2px solid var(--border);background:white;font:inherit;margin:5px 0 9px}
+.notice{background:#fce7bf;padding:9px;border:2px dashed #b88742;font-size:12px;margin:8px 0}
+.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);background:#263b2d;color:white;padding:11px 15px;border:2px solid #fff;font-weight:900;font-size:12px;opacity:0;pointer-events:none;transition:.2s;max-width:90%;z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{text-align:center;font-size:10px;color:#82917a;padding:16px 0 0}
+@media(min-width:600px){.app-shell{margin:18px auto;min-height:calc(100vh - 36px);border:3px solid var(--border);box-shadow:8px 8px 0 #9ab88b}.scene{height:310px}.yard{top:125px}}
+</style>
+<script src="https://staticgram.top/js/telegram-web-app.js"></script>
+</head>
+<body>
+<main class="app-shell">
+<header class="topbar">
+<div>
+<div class="brand">ТАКСА<span>LIFE</span></div>
+<div class="subtitle">маленькая жизнь большой таксы</div>
+</div>
+<div class="balance" id="balance">🌭 100</div>
+</header>
+
+<section class="scene">
+<div class="sun">☀</div>
+<div class="cloud cloud-a">▰▰▰</div>
+<div class="cloud cloud-b">▰▰</div>
+<div class="scene-label">МОЙ ДВОР</div>
+<div class="yard">
+<div class="tree">🌳</div>
+<button class="dog-object" id="dog">
+<span class="dog-emoji">🐕</span>
+<span id="dogName">Такса</span>
+</button>
+<button class="scene-object bowl" data-tab="food">🥣<small>Еда</small></button>
+<button class="scene-object toy" data-tab="play">🧸<small>Играть</small></button>
+<button class="scene-object house" data-tab="work">🏠<small>Работа</small></button>
+<div class="grass grass-1"></div>
+<div class="grass grass-2"></div>
+<div class="path"></div>
+</div>
+</section>
+
+<section class="stats">
+<div class="stat-card">
+<div class="stat-head"><span>🍖 Голод</span><b id="hungerValue">100/100</b></div>
+<div class="meter"><div id="hungerBar" class="meter-fill hunger-fill"></div></div>
+</div>
+<div class="stat-card">
+<div class="stat-head"><span>💖 Радость</span><b id="joyValue">100/100</b></div>
+<div class="meter"><div id="joyBar" class="meter-fill joy-fill"></div></div>
+</div>
+<div class="stat-card level-card">
+<span>⭐ Уровень</span><b id="levelValue">0</b>
+<small id="progressValue">Очки радости: 0</small>
+</div>
+</section>
+
+<nav class="tabs">
+<button class="tab active" data-tab="home">🏡<span>Двор</span></button>
+<button class="tab" data-tab="food">🍖<span>Еда</span></button>
+<button class="tab" data-tab="gifts">🎁<span>Подарки</span></button>
+<button class="tab" data-tab="work">💼<span>Работа</span></button>
+<button class="tab" data-tab="more">☰<span>Ещё</span></button>
+</nav>
+
+<section class="panel" id="panel">
+<h2>Привет, хозяин!</h2>
+<p>Нажимай на объекты во дворе и заботься о таксе.</p>
+<button class="primary" data-action="play">Поиграть · +50 радости</button>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+<footer>Taksabot · пиксельная жизнь таксы</footer>
+</main>
+
+<script>
+const $=id=>document.getElementById(id),tg=window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+
+let state=null,activeTab='home';
+const initData=tg?.initData||'';
+const devMode=!initData&&location.hostname==='localhost';
+
+function headers(){
+const h={'Content-Type':'application/json'};
+if(initData)h['X-StaticGram-Init-Data']=initData;
+if(devMode){
+h['X-Dev-User']=localStorage.getItem('taksa-dev-id')||'10001';
+h['X-Dev-Username']=localStorage.getItem('taksa-dev-username')||'tester';
+}
+return h;
+}
+
+async function api(url,body){
+const r=await fetch(url,{
+method:body===undefined?'GET':'POST',
+headers:headers(),
+body:body===undefined?undefined:JSON.stringify(body)
+});
+const d=await r.json().catch(()=>({}));
+if(!r.ok)throw Error(d.error||'Ошибка запроса');
+if(d.player)state=d.player;
+return d;
+}
+
+function toast(m){
+const e=$('toast');
+e.textContent=m;
+e.classList.add('show');
+clearTimeout(toast.t);
+toast.t=setTimeout(()=>e.classList.remove('show'),2800);
+}
+
+function esc(s){
+return String(s).replace(/[&<>"']/g,c=>({
+'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+}
+
+function renderStats(){
+$('balance').textContent=`🌭 ${state.balance.toLocaleString('ru-RU')}`;
+$('dogName').textContent=state.dogName;
+$('hungerValue').textContent=`${state.hunger}/100`;
+$('joyValue').textContent=`${state.joy}/100`;
+$('hungerBar').style.width=state.hunger+'%';
+$('joyBar').style.width=state.joy+'%';
+$('levelValue').textContent=state.level;
+$('progressValue').textContent=`Очки радости: ${state.totalJoy}`;
+}
+
+function row(title,sub,buttons){
+return `<div class="item-row">
+<div>
+<div class="item-title">${title}</div>
+<div class="item-sub">${sub}</div>
+</div>
+<div class="item-actions">${buttons}</div>
+</div>`;
+}
+
+function btn(label,action,disabled=false,cls='small-button'){
+return `<button class="${cls}" data-action="${action}" ${disabled?'disabled':''}>${label}</button>`;
+}
+
+function renderPanel(){
+const p=$('panel');
+
+if(activeTab==='home'){
+p.innerHTML=`
+<h2>Привет, хозяин!</h2>
+<p>Ухаживай за таксой, играй с ней и отправляй её на работу. Показатели со временем уменьшаются.</p>
+<button class="primary" data-action="play">Поиграть · +50 радости</button>
+<div class="action-row">
+${btn('Переименовать · 500 🌭','rename-open',state.balance<500,'action')}
+${btn('Рейтинги','leaderboards',false,'action')}
+</div>`;
+return;
+}
+
+if(activeTab==='food'){
+let html='<h2>Магазин еды</h2><p>Еда хранится в инвентаре. При переполнении голода использование блокируется.</p>';
+
+for(const [k,v] of Object.entries(state.foods)){
+html+=row(v.name,`+${v.hunger} голода · ${v.price} 🌭`,
+btn('Купить','buy:'+k,state.balance<v.price));
+}
+
+html+='<h2 style="margin-top:18px">Инвентарь</h2>';
+let any=false;
+
+for(const [k,v] of Object.entries(state.foods)){
+if(state.inventory[k]){
+any=true;
+html+=row(v.name,`В наличии: ${state.inventory[k]}`,
+btn('Использовать','feed:'+k,state.hunger+v.hunger>100));
+}
+}
+
+p.innerHTML=html+(any?'':'<p>Инвентарь еды пуст.</p>');
+return;
+}
+
+if(activeTab==='gifts'){
+let html='<h2>Подарки</h2><p>Подарки расходуются при использовании; во время работы их использовать нельзя.</p>';
+
+for(const [k,v] of Object.entries(state.gifts)){
+html+=row(v.name,`+${v.joy} радости · ${v.price} 🌭`,
+btn('Купить','buy:'+k,state.balance<v.price));
+}
+
+html+='<h2 style="margin-top:18px">Инвентарь</h2>';
+let any=false;
+
+for(const [k,v] of Object.entries(state.gifts)){
+if(state.inventory[k]){
+any=true;
+html+=row(v.name,`В наличии: ${state.inventory[k]}`,
+btn('Подарить','gift:'+k));
+}
+}
+
+p.innerHTML=html+(any?'':'<p>Подарков в инвентаре нет.</p>');
+return;
+}
+
+if(activeTab==='work'){
+if(state.working){
+const w=state.work;
+p.innerHTML=`
+<h2>Такса на работе</h2>
+<div class="notice">
+Профессия: ${esc(w.roleName)}<br>
+Полных часов: ${w.fullHours}<br>
+На смене: ${Math.floor(w.elapsedSeconds/60)} мин.
+</div>
+<p>Во время работы доступны кормление и просмотр смены.</p>
+${btn(w.canClaim?'Забрать таксу и получить зарплату':'Забрать можно через час','work-claim',!w.canClaim,'primary')}`;
+return;
+}
+
+const cooldown=state.cooldownUntil>Math.floor(Date.now()/1000);
+let html='<h2>Работа</h2><p>Минимум час на смене. Оплата — за полные часы. Перерыв между сменами — 15 минут.</p>';
+
+for(const [k,v] of Object.entries(state.jobs)){
+html+=row(v.name,`Уровни ${v.min}–${v.max} · ${v.salary} 🌭/час`,
+btn('Устроиться','work:'+k,
+state.level<v.min||state.level>v.max||state.hunger<15||state.joy<15||cooldown));
+}
+
+p.innerHTML=html+(cooldown?'<div class="notice">Перерыв между сменами ещё не закончился.</div>':'');
+return;
+}
+
+if(activeTab==='more'){
+p.innerHTML=`
+<h2>Ещё</h2>
+<div class="action-row">
+${btn('Перевести 🌭','transfer-open',false,'action')}
+${btn('Пополнить баланс','donate-open',false,'action')}
+</div>
+<div class="action-row">
+${btn('Рейтинги','leaderboards',false,'action')}
+${btn('Переименовать · 500 🌭','rename-open',state.balance<500,'action')}
+</div>
+<p class="item-sub">Курс доната: 1 ⭐ = 10 🌭. Зачисление после подтверждения оплаты.</p>`;
+}
+}
+
+function render(){
+if(state){
+renderStats();
+renderPanel();
+}
+}
+
+async function refresh(){
+try{
+const d=await api('/api/state');
+state=d.player;
+render();
+}catch(e){
+$('panel').innerHTML=`
+<h2>Не удалось открыть игру</h2>
+<p>${esc(e.message)}</p>
+<p>Открой Mini App внутри StaticGram или запусти локально командой <code>npm run dev</code>.</p>`;
+}
+}
+
+async function act(url,body){
+try{
+const d=await api(url,body);
+render();
+toast(d.message||'Готово');
+}catch(e){
+toast(e.message);
+}
+}
+
+function tab(t){
+activeTab=t;
+document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));
+renderPanel();
+}
+
+document.addEventListener('click',async e=>{
+const t=e.target.closest('[data-tab]');
+if(t){
+tab(t.dataset.tab);
+return;
+}
+
+const b=e.target.closest('[data-action]');
+if(!b)return;
+const a=b.dataset.action;
+
+if(a==='play')return act('/api/action/play',{});
+if(a.startsWith('buy:'))return act('/api/shop/buy',{item:a.slice(4)});
+if(a.startsWith('feed:'))return act('/api/action/feed',{item:a.slice(5)});
+if(a.startsWith('gift:'))return act('/api/action/gift',{item:a.slice(5)});
+if(a.startsWith('work:'))return act('/api/work/start',{role:a.slice(5)});
+if(a==='work-claim')return act('/api/work/claim',{});
+
+if(a==='rename-open'){
+$('panel').innerHTML=`
+<h2>Новое имя</h2>
+<p>Переименование стоит 500 🌭.</p>
+<input class="field" id="renameInput" maxlength="24" placeholder="Имя таксы">
+<button class="primary" data-action="rename-submit">Сохранить за 500 🌭</button>`;
+return;
+}
+
+if(a==='rename-submit'){
+return act('/api/action/rename',{name:$('renameInput').value});
+}
+
+if(a==='transfer-open'){
+$('panel').innerHTML=`
+<h2>Перевод 🌭</h2>
+<label>Username получателя</label>
+<input class="field" id="recipient" placeholder="username">
+<label>Сумма</label>
+<input class="field" id="transferAmount" type="number" min="1" max="100000" placeholder="Количество 🌭">
+<div class="notice">Дневной лимит: 100 000 🌭. Комиссии нет.</div>
+<button class="primary" data-action="transfer-submit">Подтвердить перевод</button>`;
+return;
+}
+
+if(a==='transfer-submit'){
+return act('/api/transfer',{
+username:$('recipient').value,
+amount:Number($('transferAmount').value)
+});
+}
+
+if(a==='donate-open'){
+$('panel').innerHTML=`
+<h2>Пополнение 🌭</h2>
+<p>Курс: 1 ⭐ = 10 🌭.</p>
+<label>Количество звёзд</label>
+<input class="field" id="starsAmount" type="number" min="1" step="1" value="10">
+<button class="primary" data-action="donate-submit">Создать счёт</button>
+<p class="item-sub">Баланс пополнится после подтверждения оплаты.</p>`;
+return;
+}
+
+if(a==='donate-submit'){
+try{
+const d=await api('/api/donate/invoice',{
+stars:Number($('starsAmount').value)
+});
+
+if(tg?.openInvoice){
+tg.openInvoice(d.url,status=>{
+if(status==='paid'){
+toast('Оплата подтверждена. Обновляю баланс.');
+setTimeout(refresh,1200);
+}else if(status==='pending'){
+toast('Платёж ожидает подтверждения.');
+}
+});
+}else{
+window.open(d.url,'_blank');
+toast('Счёт открыт. После оплаты обнови игру.');
+}
+}catch(err){
+toast(err.message);
+}
+return;
+}
+
+if(a==='leaderboards'){
+try{
+const d=await api('/api/leaderboards');
+
+$('panel').innerHTML=
+'<h2>Топ такс</h2>'+
+d.levels.map((x,i)=>row(
+`${i+1}. ${esc(x.dog_name)} · @${esc(x.username||x.id)}`,
+`Уровень ${x.level}`,''
+)).join('')+
+'<h2 style="margin-top:18px">Топ по 🌭</h2>'+
+d.balances.map((x,i)=>row(
+`${i+1}. ${esc(x.dog_name)} · @${esc(x.username||x.id)}`,
+`${x.balance} 🌭`,''
+)).join('');
+}catch(err){
+toast(err.message);
+}
+}
+});
+
+$('dog').addEventListener('click',()=>{
+tab('home');
+toast(`${state?.dogName||'Такса'} машет хвостом!`);
+});
+
+setInterval(()=>{
+if(state?.working&&state.work){
+state.work.elapsedSeconds+=10;
+state.work.fullHours=Math.floor(state.work.elapsedSeconds/3600);
+state.work.canClaim=state.work.fullHours>=1;
+if(activeTab==='work')renderPanel();
+}
+},10000);
+
+refresh();
+</script>
+</body>
+</html>
